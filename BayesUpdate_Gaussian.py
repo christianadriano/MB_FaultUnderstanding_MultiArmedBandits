@@ -76,4 +76,4 @@ class BernThompson(BetaAlgo):
 
 class GaussianModel():
     def likelihood(mean,variance):
-        return np.norm
+        return np.norm(mean,variance)
