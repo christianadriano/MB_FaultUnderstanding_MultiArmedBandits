@@ -1,6 +1,6 @@
-"
-Update a Gaussian distribution
-"
+"""
+Bayesian Update of a Gaussian data generation process
+"""
 import numpy as np
 import scipy.stats.norm as norm
 
