@@ -57,7 +57,7 @@ class BernGreedy(BetaAlgo):
    
   def get_action(self):
     """ Bernouilli parameters are the expected values of the beta"""
-    theta = self.alpha / (self.alpha + self.beta)
+    theta = self.alpha / (self.alpha + self.beta) # Theta is the mean of the distribution.
     return theta.argmax()
   
 class BernThompson(BetaAlgo):
