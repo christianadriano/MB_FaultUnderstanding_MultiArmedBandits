@@ -4,11 +4,16 @@ Source: https://rpubs.com/markloessi/502098
 "
 
 #Data source from Kaggle - https://www.kaggle.com/akram24/ads-ctr-optimisation/data
+#Dataset consists of ads in colums and the row is either 1 (ad clicked) or 0 (ad not clicked)
+#hence the Reward is a binary variable one or zero.
 dataset = read.csv(".//data//datasets_21128_27235_Ads_CTR_Optimisation.csv")
 
-N = 10000 #number of iterations
+N = 100 #number of iterations
 d = 10 #number of arms
 ads_selected = integer(0)
+cumulative_reward_list = integer(N+1)
+cumularive_reward_list[1] = 0
+
 # UCB and Thompson Sampling algorithm are very similar but use different variables
 # those variables are here
 numbers_of_rewards_1 = integer(d) # the d defined above sets the initial as 10
@@ -34,6 +39,7 @@ for (n in 1:N) {
   ads_selected = append(ads_selected, ad)
   #pull the best arm
   reward = dataset[n, ad] 
+  cumulative_reward_list[n+1] = cumulative_reward_list[n] + reward
   #update believe about its reward distribution
   if (reward == 1) {
     numbers_of_rewards_1[ad] = numbers_of_rewards_1[ad] + 1
@@ -50,3 +56,6 @@ hist(ads_selected,
      xlab = 'Ads',
      ylab = 'Number of times each ad was selected'
      )
+
+plot(type="l", cumulative_reward_list, xlab="iterations",ylab="reward", main="Cumulative rewards")
+
