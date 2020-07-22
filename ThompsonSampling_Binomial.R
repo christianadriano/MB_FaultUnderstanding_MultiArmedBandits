@@ -8,7 +8,7 @@ Source: https://rpubs.com/markloessi/502098
 #hence the Reward is a binary variable one or zero.
 dataset = read.csv(".//data//datasets_21128_27235_Ads_CTR_Optimisation.csv")
 
-N = 1000 #number of iterations
+N = 10 #number of iterations
 d = 10 #number of arms
 ads_selected = integer(0)
 cumulative_reward_list = integer(N+1)
