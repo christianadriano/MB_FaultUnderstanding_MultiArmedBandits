@@ -33,12 +33,14 @@ answer_df <- answerPopulation_df[answerPopulation_df$FailingMethod==failing_meth
 question_id_list <- unique(answer_df$Question.ID)
 first_question_id <- min(question_id_list)
 
-percentage_budget = 0.2
+percentage_budget = 2
 answers_per_question = 20
 K = length(question_id_list)  #number of arms (questions) starts with zero.
 Horizon = percentage_budget*answers_per_question * K #number of iterations (Horizon or budget, total answers obtained)
 questions_selected = integer(0);
 cumulative_reward_list = integer(Horizon) #one reward for each iteration
+cumulative_regret_list = integer(Horizon) #one regret for each time it does not ask a bug covering question
+
 accumStatistics <- data.frame(list(precision=0, recall=0, sensitivity=0, accuracy=0, answers=0,mean_precision=0,mean_recall=0));
 
 numbers_of_rewards_1 = integer(K) #k arms or questions
@@ -48,8 +50,9 @@ total_reward = 0
 reward=0
 
 #data frame with the samples of the arms
-sampled_df <- data.frame(matrix(nrow = 0,ncol = 4))
-colnames(sampled_df) <- c("Question.ID","Answer.reward","Cumulative.reward","Iterations")
+sampled_df <- data.frame(matrix(nrow = 0,ncol = 6))
+colnames(sampled_df) <- c("Question.ID","Answer.reward","Cumulative.reward","
+                          Answer.regret","Cumulative.regret","Iterations")
 
 #------------------------------------------------------------------
 #Call each question once before deciding between explore/exploit
@@ -58,14 +61,19 @@ for(question in 1:K){
   question_id = question + first_question_id - 1 #Convert back to the Question.ID scale
   answer_id <- trunc(runif(n=1,min=1,max=answers_per_question))
   reward = answer_df[answer_df$Question.ID==question_id,"Answer.reward"][answer_id] #this should done by sampling, not in order.
+  regret = compute_regret(question_id, actual_bugs);
   if(question==1){
-    cumulative_reward_list[question] =  reward;
+    cumulative_reward_list[question] = reward;
+    cumulative_regret_list[question] = regret;
   }else{
     cumulative_reward_list[question] = cumulative_reward_list[question-1] + reward;
+    cumulative_regret_list[question] = cumulative_regret_list[question-1] + reward;
   }
   #store the sample obtained
   sampled_df <- rbind(sampled_df,data.frame("Question.ID"=question,"Answer.reward"=reward,
                                             "Cumulative.reward"=cumulative_reward_list[question],
+                                            "Answer.regret"=regret,
+                                            "Cumulative.regret"=cumulative_reward_list[h],
                                             "Iteration"=question));
 
   #obtain the total of YES for each question
@@ -85,7 +93,6 @@ for(question in 1:K){
     numbers_of_rewards_0[question] = numbers_of_rewards_0[question] + 1
   }
 }
-#colnames(accumStatistics) <- c("precision","recall","sensitivity", "accuracy", "answers");
 
 #----------------------------------------------------------------
 
@@ -116,10 +123,13 @@ for (h in start:Horizon) {
   answer_id <- trunc(runif(n=1,min=1,max=answers_per_question))
   reward = answer_df[answer_df$Question.ID==question_id,"Answer.reward"][answer_id] #sample an answer
   cumulative_reward_list[h] = cumulative_reward_list[h-1] + reward
-  cumularity_regret_list[h] = cumulative_reward_list[h-1] + compute_regret(question_id,actual_bugs)
+  regret = compute_regret(question_id,actual_bugs)
+  cumulative_regret_list[h] = cumulative_regret_list[h-1] + regret
   
   sampled_df <- rbind(sampled_df,data.frame("Question.ID"=question,"Answer.reward"=reward,
                                             "Cumulative.reward"=cumulative_reward_list[h],
+                                            "Answer.regret"=regret,
+                                            "Cumulative.regret"=cumulative_reward_list[h],
                                             "Iteration"=h))
   #------------------------------
   #Compute precision and recall
@@ -177,6 +187,21 @@ ggplot(sampled_df,aes(Iteration,Cumulative.reward)) +
   labs(y="reward",x="iteration") + 
   labs(title=paste("Cumulative Reward - ",failing_methods[failed_method]));
 
+
+#Which question gave the more regrets?
+ggplot(sampled_df,aes(y=Answer.regret, x=Question.ID)) + 
+  geom_bar(stat="identity") +
+  labs(title=paste("Regret per Question - ",failing_methods[failed_method])) +
+  labs(x="Question.ID", y="Regret");
+
+#cumulative regret (answers on questions that did not cover bug)
+ggplot(sampled_df,aes(Iteration,Cumulative.regret)) + 
+  geom_line() +#aes(y=100*precision, colour="precision"))+
+  #geom_point(aes(x=answers,y=100*precision), shape=1) +
+  labs(y="regret",x="iteration") + 
+  labs(title=paste("Cumulative Regret - ",failing_methods[failed_method]));
+
+
 #--------------------
 #Plot reward and answers side-by-side
 df_agg_QID <-  data.frame(table(sampled_df$Question.ID))
@@ -209,7 +234,9 @@ ggplot(accumStatistics,aes(answers)) +
   geom_point(aes(x=answers,y=100*mean_recall), shape=1) + 
   labs(y="%",x="answers") + 
   labs(title =paste("Mean precision, recall: ",failing_methods[failed_method]));
-  #scale_x_continuous(limits=c(0,40));
+  #scale_x_cntinuous(limits=c(0,40));
+
+
 
 
 
