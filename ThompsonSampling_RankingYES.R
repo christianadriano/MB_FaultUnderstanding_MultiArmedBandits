@@ -21,10 +21,12 @@ summary(answerPopulation_df)
 failing_methods <- c(levels(unique(answerPopulation_df$FailingMethod)))
 
 #ranking_top
-ranking_top <- 2
-failed_method <- 1
+ranking_top <- 3
+failed_method <- 6
 #questionList <- c(1,4,10,14,20,23,30,32,55,56,57,58,59,72,73,77,84,92,95,97,102,104,115,119,123);
-actual_bugs <- c(1,4)+1
+#"HIT01_8-1,4,","HIT02_24-10,14","HIT03_6-20,23,30,32",,"HIT04_7-55,56,57,58,59,,","HIT05_35-72,73,77","HIT06_51"-84,92,95","HIT07_33-97,102,104","HIT08_54-115,119,123"
+
+actual_bugs <- c(84,92,95)+1
 
 #select one bug
 answer_df <- answerPopulation_df[answerPopulation_df$FailingMethod==failing_methods[failed_method],]
@@ -37,8 +39,7 @@ K = length(question_id_list)  #number of arms (questions) starts with zero.
 Horizon = percentage_budget*answers_per_question * K #number of iterations (Horizon or budget, total answers obtained)
 questions_selected = integer(0);
 cumulative_reward_list = integer(Horizon) #one reward for each iteration
-accumStatistics<- data.frame(matrix(nrow=0,ncol=5))
-colnames(accumStatistics) <- c("precision","recall","sensitivity", "accuracy", "answers");
+accumStatistics <- data.frame(list(precision=0, recall=0, sensitivity=0, accuracy=0, answers=0,mean_precision=0,mean_recall=0));
 
 numbers_of_rewards_1 = integer(K) #k arms or questions
 numbers_of_rewards_0 = integer(K)
@@ -66,13 +67,7 @@ for(question in 1:K){
   sampled_df <- rbind(sampled_df,data.frame("Question.ID"=question,"Answer.reward"=reward,
                                             "Cumulative.reward"=cumulative_reward_list[question],
                                             "Iteration"=question));
-  
-  #compute precision and recall (will be all Zero)
-  #predicted_bugs=c(1000,2000)#force all negatives
-  #statistics_f<- computeStatistics(predicted_bugs,actual_bugs)
-  #statistics_f$answers <- question
-  #accumStatistics <- rbind(accumStatistics,list(0,0,0,0,question))
-  
+
   #obtain the total of YES for each question
   df_agg <- aggregate(Answer.reward ~ Question.ID, data=sampled_df, sum)
   #Sort descending
@@ -80,6 +75,7 @@ for(question in 1:K){
   predicted_bugs <- df_agg_sort[1:ranking_top,]$Question.ID
   statistics_f<- computeStatistics(predicted_bugs,actual_bugs); #change name of computeOutcomes to computeStat
   statistics_f$answers <- dim(sampled_df)[1];
+  
   accumStatistics <- rbind(accumStatistics,statistics_f);
 
   #update believe about its reward distribution
@@ -89,7 +85,7 @@ for(question in 1:K){
     numbers_of_rewards_0[question] = numbers_of_rewards_0[question] + 1
   }
 }
-colnames(accumStatistics) <- c("precision","recall","sensitivity", "accuracy", "answers");
+#colnames(accumStatistics) <- c("precision","recall","sensitivity", "accuracy", "answers");
 
 #----------------------------------------------------------------
 
@@ -120,6 +116,7 @@ for (h in start:Horizon) {
   answer_id <- trunc(runif(n=1,min=1,max=answers_per_question))
   reward = answer_df[answer_df$Question.ID==question_id,"Answer.reward"][answer_id] #sample an answer
   cumulative_reward_list[h] = cumulative_reward_list[h-1] + reward
+  cumularity_regret_list[h] = cumulative_reward_list[h-1] + compute_regret(question_id,actual_bugs)
   
   sampled_df <- rbind(sampled_df,data.frame("Question.ID"=question,"Answer.reward"=reward,
                                             "Cumulative.reward"=cumulative_reward_list[h],
@@ -133,6 +130,14 @@ for (h in start:Horizon) {
   predicted_bugs <- df_agg_sort[1:ranking_top,]$Question.ID
   statistics_f<- computeStatistics(predicted_bugs,actual_bugs); #change name of computeOutcomes to computeStat
   statistics_f$answers <- dim(sampled_df)[1];
+  statistics_f$mean_precision <- compute_incremental_mean(n=dim(accumStatistics)[1],
+                                                          original_mean=mean(accumStatistics$precision),
+                                                          new_datapoint=statistics_f$precision)
+  
+  statistics_f$mean_recall <- compute_incremental_mean(n=dim(accumStatistics)[1],
+                                                       original_mean=mean(accumStatistics$recall),
+                                                       new_datapoint=statistics_f$recall)
+  
   accumStatistics <- rbind(accumStatistics,statistics_f);
   #-------------
 
@@ -198,10 +203,12 @@ ggplot(answer_reward_df,aes(y=Count, x=Question.ID, fill=Type)) +
 
 #precision and recall
 ggplot(accumStatistics,aes(answers)) + 
-  geom_line(aes(y=100*precision, colour="precision")) + 
-  geom_line(aes(y=100*recall, colour="recall")) + 
+  geom_line(aes(y=100*mean_precision, colour="precision")) + 
+  geom_line(aes(y=100*mean_recall, colour="recall")) + 
+  geom_point(aes(x=answers,y=100*mean_precision), shape=1) +
+  geom_point(aes(x=answers,y=100*mean_recall), shape=1) + 
   labs(y="%",x="answers") + 
-  labs(title =paste("precision, recall by answers",failing_methods[failed_method]));
+  labs(title =paste("Mean precision, recall: ",failing_methods[failed_method]));
   #scale_x_continuous(limits=c(0,40));
 
 
