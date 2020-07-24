@@ -73,7 +73,7 @@ for(question in 1:K){
   sampled_df <- rbind(sampled_df,data.frame("Question.ID"=question,"Answer.reward"=reward,
                                             "Cumulative.reward"=cumulative_reward_list[question],
                                             "Answer.regret"=regret,
-                                            "Cumulative.regret"=cumulative_reward_list[h],
+                                            "Cumulative.regret"=cumulative_regret_list[h],
                                             "Iteration"=question));
 
   #obtain the total of YES for each question
@@ -129,7 +129,7 @@ for (h in start:Horizon) {
   sampled_df <- rbind(sampled_df,data.frame("Question.ID"=question,"Answer.reward"=reward,
                                             "Cumulative.reward"=cumulative_reward_list[h],
                                             "Answer.regret"=regret,
-                                            "Cumulative.regret"=cumulative_reward_list[h],
+                                            "Cumulative.regret"=cumulative_regret_list[h],
                                             "Iteration"=h))
   #------------------------------
   #Compute precision and recall
