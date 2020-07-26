@@ -22,18 +22,18 @@ failing_methods <- c(levels(unique(answerPopulation_df$FailingMethod)))
 
 #ranking_top
 ranking_top <- 3
-failed_method <- 6
+failed_method <- 1
 #questionList <- c(1,4,10,14,20,23,30,32,55,56,57,58,59,72,73,77,84,92,95,97,102,104,115,119,123);
 #"HIT01_8-1,4,","HIT02_24-10,14","HIT03_6-20,23,30,32",,"HIT04_7-55,56,57,58,59,,","HIT05_35-72,73,77","HIT06_51"-84,92,95","HIT07_33-97,102,104","HIT08_54-115,119,123"
 
-actual_bugs <- c(84,92,95)+1
+actual_bugs <- c(1,4)
 
 #select one bug
 answer_df <- answerPopulation_df[answerPopulation_df$FailingMethod==failing_methods[failed_method],]
 question_id_list <- unique(answer_df$Question.ID)
 first_question_id <- min(question_id_list)
 
-percentage_budget = 0.2
+percentage_budget = 2
 answers_per_question = 20
 K = length(question_id_list)  #number of arms (questions) starts with zero.
 Horizon = percentage_budget*answers_per_question * K #number of iterations (Horizon or budget, total answers obtained)
@@ -123,7 +123,7 @@ for (h in start:Horizon) {
   answer_id <- trunc(runif(n=1,min=1,max=answers_per_question))
   reward = answer_df[answer_df$Question.ID==question_id,"Answer.reward"][answer_id] #sample an answer
   cumulative_reward_list[h] = cumulative_reward_list[h-1] + reward;
-  regret = compute_regret(question,actual_bugs)
+  regret = compute_regret(question_id,actual_bugs)
   cumulative_regret_list[h] = cumulative_regret_list[h-1] + regret;
   
   sampled_df <- rbind(sampled_df,data.frame("Question.ID"=question,"Answer.reward"=reward,
