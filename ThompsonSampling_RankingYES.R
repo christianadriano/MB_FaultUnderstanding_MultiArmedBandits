@@ -40,13 +40,14 @@ answer_df <- answerPopulation_df[answerPopulation_df$FailingMethod==failing_meth
 question_id_list <- unique(answer_df$Question.ID)
 first_question_id <- min(question_id_list)
 
-#average statistics per similation
-simulations = 100 #how many times the algorithm will run from scratch
-avg_cumulative_rewards = integer(Horizon) #one reward for each iteration
-avg_cumulative_regrets = integer(Horizon) #one regret for each time it does not ask a bug covering question
+#Initialize datastructures 
+Total_Simulations = 100 #how many times the algorithm will run from scratch
+avg_cumulative_rewards = integer(Total_Simulations) #one reward for each iteration
+avg_cumulative_regrets = integer(Total_Simulations) #one regret for each time it does not ask a bug covering question
 avg_cumulative_statistics <- data.frame(list(precision=0, recall=0, sensitivity=0, accuracy=0, answers=0,mean_precision=0,mean_recall=0));
-
-
+answers_df <- data.frame(matrix(nrow = 0,ncol = 6)) #data frame with the samples of the arms
+colnames(answers_df) <- c("Question.ID","Answer.reward","Cumulative.reward","
+                          Answer.regret","Cumulative.regret","Simulation","Iteration")
 
 #Initilize algorithm configurations
 percentage_budget = 2
@@ -54,132 +55,134 @@ answers_per_question = 20
 K = length(question_id_list)  #number of arms (questions) starts with zero.
 Horizon = percentage_budget*answers_per_question * K #number of iterations (Horizon or budget, total answers obtained)
 questions_selected = integer(0);
-cumulative_rewards = integer(Horizon) #one reward for each iteration
-cumulative_regrets = integer(Horizon) #one regret for each time it does not ask a bug covering question
-
-cumulative_statistics <- data.frame(list(precision=0, recall=0, sensitivity=0, accuracy=0, answers=0,mean_precision=0,mean_recall=0));
-
-numbers_of_rewards_1 = integer(K) #k arms or questions
-numbers_of_rewards_0 = integer(K)
-# These two variables will be put in place in the for loops
-total_reward = 0
-reward=0
-
-#data frame with the samples of the arms
-sampled_df <- data.frame(matrix(nrow = 0,ncol = 6))
-colnames(sampled_df) <- c("Question.ID","Answer.reward","Cumulative.reward","
-                          Answer.regret","Cumulative.regret","Iterations")
 
 
-#------------------------------------------------------------------
-#Call each question once before deciding between explore/exploit
-#pull the best arm
-for(question in 1:K){
-  question_id = question + first_question_id - 1 #Convert back to the Question.ID scale
-  answer_id <- trunc(runif(n=1,min=1,max=answers_per_question))
-  reward = answer_df[answer_df$Question.ID==question_id,"Answer.reward"][answer_id] #this should done by sampling, not in order.
-  regret = compute_regret(question_id, actual_bugs);
-  if(question==1){
-    cumulative_rewards[question] = reward;
-    cumulative_regrets[question] = regret;
-  }else{
-    cumulative_rewards[question] = cumulative_rewards[question-1] + reward;
-    cumulative_regrets[question] = cumulative_regrets[question-1] + regret;
-  }
-  #store the sample obtained
-  sampled_df <- rbind(sampled_df,data.frame("Question.ID"=question,"Answer.reward"=reward,
-                                            "Cumulative.reward"=cumulative_rewards[question],
-                                            "Answer.regret"=regret,
-                                            "Cumulative.regret"=cumulative_regrets[question],
-                                            "Iteration"=question));
 
-  #obtain the total of YES for each question
-  df_agg <- aggregate(Answer.reward ~ Question.ID, data=sampled_df, sum)
-  #Sort descending
-  df_agg_sort <- df_agg[order(df_agg$Answer.reward, decreasing=TRUE),]
-  predicted_bugs <- df_agg_sort[1:ranking_top,]$Question.ID
-  statistics_f<- computeStatistics(predicted_bugs,actual_bugs); #change name of computeOutcomes to computeStat
-  statistics_f$answers <- dim(sampled_df)[1];
+for(simulation in 1:Total_Simulations){
+  cumulative_rewards = integer(Horizon) #one reward for each iteration
+  cumulative_regrets = integer(Horizon) #one regret for each time it does not ask a bug covering question
   
-  cumulative_statistics <- rbind(cumulative_statistics,statistics_f);
-
-  #update believe about its reward distribution
-  if (reward == 1) {
-    numbers_of_rewards_1[question] = numbers_of_rewards_1[question] + 1
-  } else {
-    numbers_of_rewards_0[question] = numbers_of_rewards_0[question] + 1
-  }
-}
-
-#----------------------------------------------------------------
-
-start = K+1 #because it has already initialized K arms.
-#Now look for the best ARM
-for (h in start:Horizon) {
-  question=0
-  max_probability = 0
-  #-----------------------------
-  #Sample and Take the arm with highest reward
-  for (k in 1:K) {
-    #sample
-    #adding 1 because they start with zero, so it is using beta(1,1) flat prior
-    sampled_probability = rbeta(n = 1,
-                        shape1 = numbers_of_rewards_1[k] + 1,
-                        shape2 = numbers_of_rewards_0[k] + 1); 
-    #argmax
-    #continue until it finds a probability of 1 that is the highest 
-    if(sampled_probability > max_probability){
-      max_probability <- sampled_probability;
-      question <-  k;
+  cumulative_statistics <- data.frame(list(precision=0, recall=0, sensitivity=0, accuracy=0, answers=0,mean_precision=0,mean_recall=0));
+  
+  numbers_of_rewards_1 = integer(K) #k arms or questions
+  numbers_of_rewards_0 = integer(K)
+  # These two variables will be put in place in the for loops
+  total_reward = 0
+  reward=0
+  
+  #------------------------------------------------------------------
+  #Call each question once before deciding between explore/exploit
+  #pull the best arm
+  for(question in 1:K){
+    question_id = question + first_question_id - 1 #Convert back to the Question.ID scale
+    answer_id <- trunc(runif(n=1,min=1,max=answers_per_question))
+    reward = answer_df[answer_df$Question.ID==question_id,"Answer.reward"][answer_id] #this should done by sampling, not in order.
+    regret = compute_regret(question_id, actual_bugs);
+    if(question==1){
+      cumulative_rewards[question] = reward;
+      cumulative_regrets[question] = regret;
+    }else{
+      cumulative_rewards[question] = cumulative_rewards[question-1] + reward;
+      cumulative_regrets[question] = cumulative_regrets[question-1] + regret;
+    }
+    #store the sample obtained
+    answers_df <- rbind(answers_df,data.frame("Question.ID"=question,"Answer.reward"=reward,
+                                              "Cumulative.reward"=cumulative_rewards[question],
+                                              "Answer.regret"=regret,
+                                              "Cumulative.regret"=cumulative_regrets[question],
+                                              "Simulation"=simulation,
+                                              "Iteration"=question)
+                        );
+    
+    #obtain the total of YES for each question
+    df_agg <- aggregate(Answer.reward ~ Question.ID, data=answers_df, sum)
+    #Sort descending
+    df_agg_sort <- df_agg[order(df_agg$Answer.reward, decreasing=TRUE),]
+    predicted_bugs <- df_agg_sort[1:ranking_top,]$Question.ID
+    statistics_f<- computeStatistics(predicted_bugs,actual_bugs); #change name of computeOutcomes to computeStat
+    statistics_f$answers <- dim(answers_df)[1];
+    
+    cumulative_statistics <- rbind(cumulative_statistics,statistics_f);
+    
+    #update believe about its reward distribution
+    if (reward == 1) {
+      numbers_of_rewards_1[question] = numbers_of_rewards_1[question] + 1
+    } else {
+      numbers_of_rewards_0[question] = numbers_of_rewards_0[question] + 1
     }
   }
   
-  #------------------------------
-  #Pull the best arm
-  question_id = question + first_question_id - 1 #Convert back to the Question.ID scale
-  answer_id <- trunc(runif(n=1,min=1,max=answers_per_question))
-  reward = answer_df[answer_df$Question.ID==question_id,"Answer.reward"][answer_id] #sample an answer
-  cumulative_rewards[h] = cumulative_rewards[h-1] + reward;
-  regret = compute_regret(question_id,actual_bugs)
-  cumulative_regrets[h] = cumulative_regrets[h-1] + regret;
+  #----------------------------------------------------------------
   
-  sampled_df <- rbind(sampled_df,data.frame("Question.ID"=question,"Answer.reward"=reward,
-                                            "Cumulative.reward"=cumulative_rewards[h],
-                                            "Answer.regret"=regret,
-                                            "Cumulative.regret"=cumulative_regrets[h],
-                                            "Iteration"=h))
-  #------------------------------
-  #Compute precision and recall
-  #obtain the total of YES for each question
-  df_agg <- aggregate(Answer.reward ~ Question.ID, data=sampled_df, sum)
-  #Sort descending
-  df_agg_sort <- df_agg[order(df_agg$Answer.reward, decreasing=TRUE),]
-  predicted_bugs <- df_agg_sort[1:ranking_top,]$Question.ID
-  statistics_f<- computeStatistics(predicted_bugs,actual_bugs); #change name of computeOutcomes to computeStat
-  statistics_f$answers <- dim(sampled_df)[1];
-  statistics_f$mean_precision <- compute_incremental_mean(n=dim(cumulative_statistics)[1],
-                                                          original_mean=mean(cumulative_statistics$precision),
-                                                          new_datapoint=statistics_f$precision)
-  
-  statistics_f$mean_recall <- compute_incremental_mean(n=dim(cumulative_statistics)[1],
-                                                       original_mean=mean(cumulative_statistics$recall),
-                                                       new_datapoint=statistics_f$recall)
-  
-  cumulative_statistics <- rbind(cumulative_statistics,statistics_f);
-  #-------------
-
-  #--------------------------------------------
-  #Bayesian Update the believe about the reward distribution of the question
-  if (reward == 1) {
-    numbers_of_rewards_1[question] = numbers_of_rewards_1[question] + 1
-  } else {
-    numbers_of_rewards_0[question] = numbers_of_rewards_0[question] + 1
+  start = K+1 #because it has already initialized K arms.
+  #Now look for the best ARM
+  for (h in start:Horizon) {
+    question=0
+    max_probability = 0
+    #-----------------------------
+    #Sample and Take the arm with highest reward
+    for (k in 1:K) {
+      #sample
+      #adding 1 because they start with zero, so it is using beta(1,1) flat prior
+      sampled_probability = rbeta(n = 1,
+                                  shape1 = numbers_of_rewards_1[k] + 1,
+                                  shape2 = numbers_of_rewards_0[k] + 1); 
+      #argmax
+      #continue until it finds a probability of 1 that is the highest 
+      if(sampled_probability > max_probability){
+        max_probability <- sampled_probability;
+        question <-  k;
+      }
+    }
+    
+    #------------------------------
+    #Pull the best arm
+    question_id = question + first_question_id - 1 #Convert back to the Question.ID scale
+    answer_id <- trunc(runif(n=1,min=1,max=answers_per_question))
+    reward = answer_df[answer_df$Question.ID==question_id,"Answer.reward"][answer_id] #sample an answer
+    cumulative_rewards[h] = cumulative_rewards[h-1] + reward;
+    regret = compute_regret(question_id,actual_bugs)
+    cumulative_regrets[h] = cumulative_regrets[h-1] + regret;
+    
+    answers_df <- rbind(answers_df,data.frame("Question.ID"=question,"Answer.reward"=reward,
+                                              "Cumulative.reward"=cumulative_rewards[h],
+                                              "Answer.regret"=regret,
+                                              "Cumulative.regret"=cumulative_regrets[h],
+                                              "Simulation"=simulation,
+                                              "Iteration"=h)
+                        );
+    #------------------------------
+    #Compute precision and recall
+    #obtain the total of YES for each question
+    df_agg <- aggregate(Answer.reward ~ Question.ID, data=answers_df, sum)
+    #Sort descending
+    df_agg_sort <- df_agg[order(df_agg$Answer.reward, decreasing=TRUE),]
+    predicted_bugs <- df_agg_sort[1:ranking_top,]$Question.ID
+    statistics_f<- computeStatistics(predicted_bugs,actual_bugs); #change name of computeOutcomes to computeStat
+    statistics_f$answers <- dim(answers_df)[1];
+    statistics_f$mean_precision <- compute_incremental_mean(n=dim(cumulative_statistics)[1],
+                                                            original_mean=mean(cumulative_statistics$precision),
+                                                            new_datapoint=statistics_f$precision)
+    
+    statistics_f$mean_recall <- compute_incremental_mean(n=dim(cumulative_statistics)[1],
+                                                         original_mean=mean(cumulative_statistics$recall),
+                                                         new_datapoint=statistics_f$recall)
+    
+    cumulative_statistics <- rbind(cumulative_statistics,statistics_f);
+    #-------------
+    
+    #--------------------------------------------
+    #Bayesian Update the believe about the reward distribution of the question
+    if (reward == 1) {
+      numbers_of_rewards_1[question] = numbers_of_rewards_1[question] + 1
+    } else {
+      numbers_of_rewards_0[question] = numbers_of_rewards_0[question] + 1
+    }
+    #-----------
+    
   }
-  #-----------
   
 }
-
-
 
 
 
