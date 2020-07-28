@@ -40,6 +40,15 @@ answer_df <- answerPopulation_df[answerPopulation_df$FailingMethod==failing_meth
 question_id_list <- unique(answer_df$Question.ID)
 first_question_id <- min(question_id_list)
 
+#average statistics per similation
+simulations = 100 #how many times the algorithm will run from scratch
+avg_cumulative_reward_list = integer(Horizon) #one reward for each iteration
+avg_cumulative_regret_list = integer(Horizon) #one regret for each time it does not ask a bug covering question
+avg_accumStatistics <- data.frame(list(precision=0, recall=0, sensitivity=0, accuracy=0, answers=0,mean_precision=0,mean_recall=0));
+
+
+
+#Initilize algorithm configurations
 percentage_budget = 2
 answers_per_question = 20
 K = length(question_id_list)  #number of arms (questions) starts with zero.
