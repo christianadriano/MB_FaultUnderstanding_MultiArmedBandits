@@ -5,7 +5,9 @@ TODO:
 - modularize in functions.
 - compute aveage of the statistics per step
 - plot % of optimal arm choosen for each step
-- clean up plots (only the ones that matter, maybe parameterize)
+- clean up plots (only the ones that matter, maybe parameterized)
+
+- substitute cumulative_statistics with answer_df
 "
 
 library(ggplot2)
@@ -182,9 +184,23 @@ for(simulation in 1:Total_Simulations){
     
   }
   
+  #compute averages
+  avg_cumulative_statistics$simulation <- simulation
+  avg_cumulative_statistics$precision <- mean(cumulative_statistics$precision)
+  avg_cumulative_statistics$recall <- mean(cumulative_statistics$recall)
+  avg_cumulative_statistics$sensitivity<- mean(cumulative_statistics$sensitivity)
+  avg_cumulative_statistics$accuracy<- mean(cumulative_statistics$accuracy)
+  avg_cumulative_statistics$avg_regret <- mean(cumulative_regrets)
+  avg_cumulative_statistics$avg_reward <- mean(cumulative_rewards)
+
 }
 
 
+#Which question gave the higher reward?
+ggplot(avg_cumulative_statistics_df,aes(y=avg_regret, x=Question.ID)) + 
+  geom_bar(stat="identity") +
+  labs(title=paste("Reward per Question - ",failing_methods[failed_method])) +
+  labs(x="Question.ID", y="Reward");
 
 
 
