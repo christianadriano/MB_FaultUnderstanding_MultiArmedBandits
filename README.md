@@ -1,2 +1,2 @@
-# RL_ContextualBayesianBandits
+# Bandits_FaultUnderstanding
  
