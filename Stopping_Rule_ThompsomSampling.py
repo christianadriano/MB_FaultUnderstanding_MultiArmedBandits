@@ -9,10 +9,18 @@ def compute_markov_inequality(self, question_answers):
     """how to do this for Thompsom sampling (beta distributions)"""
     pass
 
+def compute_chebyshev_inequality(self, question_answers):
+    """how to do this for Thompsom sampling (beta distributions)"""
+    pass
+
 def compute_probabiity_of_asking_questions(self, questions_list):
-    """"how to compute this, maybe I need to hallucinate sampling for each question 
-    or do something like experience replay
+    """"Pseudocode:
+    - sample uniformly from the probability distributions of each arm 
+    - count how many times each arm was higher than all the others
+    - divide this count by the total number of times the arm was sampled
+    
     """
+
     pass
 
 def sort_questions_by_probability_of_asking(self, question_list):
