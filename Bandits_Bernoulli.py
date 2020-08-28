@@ -9,12 +9,16 @@ Three implementations:
 Codes only the pulling of arms
 """
 
+from BayesianBandit_Gaussian import BernThompson
+
+
 class BanditAlgo():
   """
   The algos try to learn which Bandit arm is the best to maximize reward.
   
   It does this by modelling the distribution of the Bandit arms with a Beta, 
   assuming the true probability of success of an arm is Normally distributed.
+  Adapted from: https://github.com/andrecianflone/thompson/blob/master/thompson.ipynb
   """
   def __init__(self, bandit):
     """
@@ -54,29 +58,50 @@ class BanditAlgo():
     #self.beta[arm] += 1 - reward
 
 
-    class BernGreedy(BetaAlgo):
-    def __init__(self, bandit):
-        super().__init__(bandit)
+class BernGreedy(BetaAlgo):
+  def __init__(self, bandit):
+    super().__init__(bandit)
+      
+  @staticmethod
+  def name():
+    return 'beta-greedy'
+      
+  def get_action(self):
+    """ Bernouilli parameters are the expected values of the beta"""
+    theta = self.alpha / (self.alpha + self.beta) # Theta is the mean of the distribution.
+    return theta.argmax()
     
-    @staticmethod
-    def name():
-        return 'beta-greedy'
-    
-    def get_action(self):
-        """ Bernouilli parameters are the expected values of the beta"""
-        theta = self.alpha / (self.alpha + self.beta) # Theta is the mean of the distribution.
-        return theta.argmax()
-    
-    class BernThompson(BetaAlgo):
-    def __init__(self, bandit):
-        super().__init__(bandit)
+class BernThompson(BetaAlgo):
+  def __init__(self, bandit):
+    super().__init__(bandit)
 
-    @staticmethod
-    def name():
-        return 'thompson'
-    
-    def get_action(self):
-        """ Bernouilli parameters are sampled from the beta"""
-        theta = np.random.beta(self.alpha, self.beta)
-        return theta.argmax()
+  @staticmethod
+  def name():
+    return 'thompson'
+      
+  def get_action(self):
+    """ Bernouilli parameters are sampled from the beta"""
+    theta = np.random.beta(self.alpha, self.beta)
+    return theta.argmax()
 
+#-----------------------------------------------
+def experiment(arm_count, timesteps=1000, simulations=1000):
+  """ 
+  Standard setup across all experiments 
+  Args:
+    timesteps: (int) how many steps for the algo to learn the bandit
+    simulations: (int) number of epochs
+  """
+  algos = [BernGreedy, BernUCB, BernThompson]
+  regrets = []
+  names = []
+  for algo in algos:
+    regrets.append(simulate(simulations, timesteps, arm_count, algo))
+    names.append(algo.name())
+  multi_plot_data(regrets, names)
+
+
+#Main instantiates bandit
+bandit = BanditAlgo(arms=5)
+BanditAlgo algo =  BanditAlgo(BernThompson())
+algo = Algorithm(bandit)
