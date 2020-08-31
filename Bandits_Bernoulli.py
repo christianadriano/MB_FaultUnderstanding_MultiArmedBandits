@@ -12,6 +12,10 @@ Codes only the pulling of arms
 
 #from BayesianBandit_Gaussian import BernThompson
 
+import numpy as np
+import matplotlib.pyplot as plt
+from pdb import set_trace
+
 
 class BanditAlgo():
   """
@@ -121,6 +125,34 @@ class BernThompson(BanditAlgo):
     return theta.argmax()
 
 #-----------------------------------------------
+def plot_data(y):
+  """ y is a 1D vector """
+  x = np.arange(y.size)
+  _ = plt.plot(x, y, 'o')
+  
+def multi_plot_data(data, names):
+  """ data, names are lists of vectors """
+  x = np.arange(data[0].size)
+  for i, y in enumerate(data):
+    plt.plot(x, y, 'o', markersize=2, label=names[i])
+  plt.legend(loc='upper right', prop={'size': 16}, numpoints=10)
+  plt.show()
+  
+def simulate(simulations, timesteps, arm_count, Algorithm):
+  """ Simulates the algorithm over 'simulations' epochs """
+  sum_regrets = np.zeros(timesteps)
+  for e in range(simulations):
+    bandit = Bandit(arm_count)
+    algo = Algorithm(bandit)
+    regrets = np.zeros(timesteps)
+    for i in range(timesteps):
+      action = algo.get_action()
+      reward, regret = algo.get_reward_regret(action)
+      regrets[i] = regret
+    sum_regrets += regrets  
+  mean_regrets = sum_regrets / simulations
+  return mean_regrets
+
 def experiment(arm_count, timesteps=1000, simulations=1000):
   """ 
   Standard setup across all experiments 
@@ -138,7 +170,10 @@ def experiment(arm_count, timesteps=1000, simulations=1000):
 
 
 #Main instantiates bandit
-bandit = BanditAlgo(arms=5)
+bandit = Bandit(arms=3)
+bandit_Algo = BanditAlgo(bandit)
+banditBernThompson = BernThompsom(bandit_Algo)
+
 
 #BanditAlgo algo =  BanditAlgo(BernThompson)
 #algo = Algorithm(bandit)
