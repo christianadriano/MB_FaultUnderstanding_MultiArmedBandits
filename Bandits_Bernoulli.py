@@ -15,7 +15,7 @@ Codes only the pulling of arms
 import numpy as np
 import matplotlib.pyplot as plt
 from pdb import set_trace
-
+import Bandit as Bandit
 
 class BanditAlgo():
   """
@@ -142,7 +142,7 @@ def simulate(simulations, timesteps, arm_count, Algorithm):
   """ Simulates the algorithm over 'simulations' epochs """
   sum_regrets = np.zeros(timesteps)
   for e in range(simulations):
-    bandit = Bandit(arm_count)
+    bandit = Bandit.Bandit(arm_count)
     algo = Algorithm(bandit)
     regrets = np.zeros(timesteps)
     for i in range(timesteps):
@@ -170,10 +170,15 @@ def experiment(arm_count, timesteps=1000, simulations=1000):
 
 
 #Main instantiates bandit
-bandit = Bandit(arms=3)
-bandit_Algo = BanditAlgo(bandit)
-banditBernThompson = BernThompsom(bandit_Algo)
+#bandit = Bandit(arms=3)
+#bandit_Algo = BanditAlgo(bandit)
+#banditBernThompson = BernThompsom(bandit_Algo)
 
+arm_count = 10 # number of arms in bandit
+epsilon = 0.1
+ucb_c = 2
+stationary=True
+experiment(arm_count)
 
 #BanditAlgo algo =  BanditAlgo(BernThompson)
 #algo = Algorithm(bandit)
