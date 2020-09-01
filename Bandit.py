@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from pdb import set_trace
-import Bandit as Bandit
 
 stationary=True
 class Bandit():
