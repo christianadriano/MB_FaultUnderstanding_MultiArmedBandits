@@ -36,11 +36,9 @@ class BanditAlgo():
     #we needed to compute the mean and variance incrementally
     self.pull_count = np.zeros(self.arm_count)
 
-    #Prior distribution of rewards for each arm is normal(0,1)
-    self.mean = np.zeros(self.arm_count)
-    self.variance = np.ones(self.arm_count)
-    #self.alpha = np.ones(self.arm_count)
-    #self.beta = np.ones(self.arm_count)
+    #Prior distribution of rewards for each arm
+    self.alpha = np.ones(self.arm_count)
+    self.beta = np.ones(self.arm_count)
   
   def get_reward_regret(self, arm):
     reward, regret = self.bandit.get_reward_regret(arm)
@@ -50,17 +48,10 @@ class BanditAlgo():
   def _update_params(self, arm, reward):
     self.pull_count[arm] += 1
     n = self.pull_count[arm]
-    
-    #Now update the mean 
-    #math explanation here: http://datagenetics.com/blog/november22017/index.html
-    previous_mean = self.mean[arm]
-    self.mean[arm] += (1/n) * (reward + n*previous_mean - previous_mean)
 
     #Now update the variance incrementally
-    previous_variance += self.variance[arm]
-    self.variance[arm] += previous_variance + (reward - previous_mean)*(reward - self.mean[arm])
-    #self.alpha[arm] += reward
-    #self.beta[arm] += 1 - reward
+    self.alpha[arm] += reward
+    self.beta[arm] += 1 - reward
 
 
 class BernGreedy(BanditAlgo):
