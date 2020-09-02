@@ -22,7 +22,7 @@ class BanditAlgo():
   The algos try to learn which Bandit arm is the best to maximize reward.
   
   It does this by modelling the distribution of the Bandit arms with a Beta, 
-  assuming the true probability of success of an arm is Normally distributed.
+  assuming the true probability of success of an arm is Bernoulli distributed.
   Adapted from: https://github.com/andrecianflone/thompson/blob/master/thompson.ipynb
   """
   def __init__(self, bandit):
