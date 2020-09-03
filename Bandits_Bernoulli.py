@@ -33,7 +33,6 @@ class BanditAlgo():
     self.bandit = bandit
     self.arm_count = bandit.arm_count
     #Keep track the number of pulls for each arm because
-    #we needed to compute the mean and variance incrementally
     self.pull_count = np.zeros(self.arm_count)
 
     #Prior distribution of rewards for each arm
