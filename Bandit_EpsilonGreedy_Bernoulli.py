@@ -11,6 +11,7 @@ class EpsilonGreedy():
   """
   Epsilon Greedy with incremental update.
   Based on Sutton and Barto pseudo-code, page. 24
+  
   To initialize this class it is necessary to provide an instance
   from class Bandit which is in Bandit.py
   """
