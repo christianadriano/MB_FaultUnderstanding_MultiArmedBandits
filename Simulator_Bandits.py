@@ -3,7 +3,7 @@ Run different bandit algorithms and plot their results
 
 """
 import numpy as np
-import matplotlib as plt
+import matplotlib.pyplot as plt
 
 import Bandit as Bandit
 from Bandits_Bernoulli import BernGreedy
@@ -55,7 +55,7 @@ class Simulator():
 simulator = Simulator()
 simulator.__init__()
 
-arm_count = 10 # number of arms in bandit
+arm_count = 2 # number of arms in bandit
 epsilon = 0.1
 ucb_c = 2
 stationary=True
