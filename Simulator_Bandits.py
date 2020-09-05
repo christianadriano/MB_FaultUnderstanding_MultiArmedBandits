@@ -13,7 +13,7 @@ from Bandit_EpsilonGreedy_Bernoulli import EpsilonGreedy
 
 class Simulator():
 
-    def multi_plot_data(data, names):
+    def multi_plot_data(self, data, names):
         """ data, names are lists of vectors """
         x = np.arange(data[0].size)
         for i, y in enumerate(data):
@@ -21,7 +21,7 @@ class Simulator():
         plt.legend(loc='upper right', prop={'size': 16}, numpoints=10)
         plt.show()
     
-    def simulate(simulations, timesteps, arm_count, Algorithm):
+    def simulate(self, simulations, timesteps, arm_count, Algorithm):
         """ Simulates the algorithm over 'simulations' epochs """
         sum_regrets = np.zeros(timesteps)
         for e in range(simulations):
@@ -36,7 +36,7 @@ class Simulator():
         mean_regrets = sum_regrets / simulations
         return mean_regrets
 
-    def experiment(arm_count, timesteps=1000, simulations=1000):
+    def experiment(self,arm_count, timesteps=1000, simulations=1000):
         """ 
         Standard setup across all experiments 
         Args:
@@ -47,22 +47,16 @@ class Simulator():
         regrets = []
         names = []
         for algo in algos:
-            regrets.append(simulate(simulations, timesteps, arm_count, algo))
+            regrets.append(self.simulate(simulations, timesteps, arm_count, algo))
             names.append(algo.name())
-        multi_plot_data(regrets, names)
+        self.multi_plot_data(regrets, names)
 
-
-
-#Main instantiates bandit
-#bandit = Bandit(arms=3)
-#bandit_Algo = BanditAlgo(bandit)
-#banditBernThompson = BernThompsom(bandit_Algo)
+#Main
+simulator = Simulator()
+simulator.__init__()
 
 arm_count = 10 # number of arms in bandit
 epsilon = 0.1
 ucb_c = 2
 stationary=True
-experiment(arm_count)
-
-#BanditAlgo algo =  BanditAlgo(BernThompson)
-#algo = Algorithm(bandit)
+simulator.experiment(arm_count)
