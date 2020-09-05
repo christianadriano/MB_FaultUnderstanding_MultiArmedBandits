@@ -3,14 +3,10 @@ Bernoulli Multi-Armed bandits
 
 Three implementations: 
 - Bernoulli Greedy
-- Bernouilli e-Greedy
-- Bernoulli UCB
 - Bayesian (Thompson sampling)
 
 Codes only the pulling of arms
 """
-
-#from BayesianBandit_Gaussian import BernThompson
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -86,55 +82,3 @@ def plot_data(y):
   x = np.arange(y.size)
   _ = plt.plot(x, y, 'o')
   
-def multi_plot_data(data, names):
-  """ data, names are lists of vectors """
-  x = np.arange(data[0].size)
-  for i, y in enumerate(data):
-    plt.plot(x, y, 'o', markersize=2, label=names[i])
-  plt.legend(loc='upper right', prop={'size': 16}, numpoints=10)
-  plt.show()
-  
-def simulate(simulations, timesteps, arm_count, Algorithm):
-  """ Simulates the algorithm over 'simulations' epochs """
-  sum_regrets = np.zeros(timesteps)
-  for e in range(simulations):
-    bandit = Bandit.Bandit(arm_count)
-    algo = Algorithm(bandit)
-    regrets = np.zeros(timesteps)
-    for i in range(timesteps):
-      action = algo.get_action()
-      reward, regret = algo.get_reward_regret(action)
-      regrets[i] = regret
-    sum_regrets += regrets  
-  mean_regrets = sum_regrets / simulations
-  return mean_regrets
-
-def experiment(arm_count, timesteps=1000, simulations=1000):
-  """ 
-  Standard setup across all experiments 
-  Args:
-    timesteps: (int) how many steps for the algo to learn the bandit
-    simulations: (int) number of epochs
-  """
-  algos = [BernGreedy, UCB, BernThompson]
-  regrets = []
-  names = []
-  for algo in algos:
-    regrets.append(simulate(simulations, timesteps, arm_count, algo))
-    names.append(algo.name())
-  multi_plot_data(regrets, names)
-
-
-#Main instantiates bandit
-#bandit = Bandit(arms=3)
-#bandit_Algo = BanditAlgo(bandit)
-#banditBernThompson = BernThompsom(bandit_Algo)
-
-arm_count = 10 # number of arms in bandit
-epsilon = 0.1
-ucb_c = 2
-stationary=True
-experiment(arm_count)
-
-#BanditAlgo algo =  BanditAlgo(BernThompson)
-#algo = Algorithm(bandit)
