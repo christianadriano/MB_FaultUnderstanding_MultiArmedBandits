@@ -1,12 +1,14 @@
 "
 ThompsonSampling_RankingYES 
 
+The reward is only the number of YES's
+
+
 TODO: 
 - modularize in functions.
 - compute aveage of the statistics per step
 - plot % of optimal arm choosen for each step
 - clean up plots (only the ones that matter, maybe parameterized)
-
 - substitute cumulative_statistics with answer_df
 "
 
