@@ -1,8 +1,9 @@
 """
-Stopping rule based on budget to ask questions.
+Stopping rule based on budget to ask questions and likelihood of changing the diagnostics.
+The diagnostics consists of the top ranked questions by number of YES.
 
-The stopping rule checks if asking more questions will change the diagnotics, which 
-is the ranking of ranking by number of YES.
+The stopping rule checks if asking more questions will change the diagnotics with a minimal probability P,
+which is determined as hyperparameter.
 """
 class Stopping_Rule_TS(object):
     pass
@@ -26,8 +27,11 @@ class Stopping_Rule_TS(object):
         pass
 
     def sort_questions_by_probability_of_asking(self, question_list):
-        """
-        sort questions in descending order of probability of being asked
+        """        
+        1- compute the probability of a question being asked 
+
+        sort questions in descending order of probability of being asked, 
+        which is proportionate to product of the mean accuracy and the variance.
         """
         pass
 
@@ -38,7 +42,7 @@ class Stopping_Rule_TS(object):
         1- identify the questions that change positions and the question that was overtaken
         2- for each question that changed position, compute the markov-inequality
         3- for each question that changed position, compute the probability of being asked
-        4- multiply 2 and 3 for all questions that move placed
+        4- multiply 2 and 3 for all questions that changed position
         5- add all terms in 4
         6- return 5 as the probability of a permutation.
         """
