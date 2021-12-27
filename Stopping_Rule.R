@@ -22,5 +22,20 @@ stop_confident_replacement
 
 "
 
+stop_permutation <- function(budget,top_m,ranking){
+}
 
+
+"Determines if should stop or not given the remaining budget.
+ budget: how many samples could still be drawn
+ top: how many arms are considered at the top
+ ranking: the current ranking of arms
+"
+stop_budget <- function(budget,top_m, ranking){
+  stop <- stop_permutation(budget,top_m, ranking)
+  "pseudo-code if the "
+  
+}
+
+stop_confidence <- function(confidence,ranking){}
 
