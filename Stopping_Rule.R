@@ -22,7 +22,11 @@ stop_confident_replacement
 
 "
 
-stop_permutation <- function(budget,top_m,ranking){
+" 
+Generates permutations 
+"
+generate_permutations <- function(top_m,ranking){
+  return top_m_permutations
 }
 
 
