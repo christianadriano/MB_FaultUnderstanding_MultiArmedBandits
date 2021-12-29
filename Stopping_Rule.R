@@ -76,5 +76,20 @@ stop_budget <- function(budget,top_m, ranking){
   
 }
 
-stop_confidence <- function(confidence,ranking){}
+"
+Determines teh stopping time based on the confidence that  
+the top ranking items will NOT change after number of sampling rounds. 
+It only stops when the probability of change 
+is below the confidence. The change could be both a reversal of
+positions within the top items or any change in items at the top.
+The probability of change is computed by looking at 
+ sampling_rounds: number of samples simulated to compute the probability of change
+ confidence: probability that the current top items configuration will NOT change
+ top: how many arms are considered at the top
+ ranking: the current ranking of arms 
+"
+stop_confidence <- function(confidence,top_m, ranking){
+  
+  
+}
 
