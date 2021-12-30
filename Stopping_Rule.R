@@ -37,10 +37,24 @@ generate_permutations <- function(x) {
   }
 }
 
+
+"
+Compute the Hamming distance, which correspond to 
+number of positions in which two lists differ.
+Take for instance, source =(4,9,5), target=(4,5,9)
+the Hamming distance is 2.
+"
+hamming_distance <- function(source, target){
+  distance <-  sum(source!=target);
+  return(distance)
+}
+
+
+
 "
 Compute distance in terms of samples from each permutation and 
 the current ranking_top. The distance is in how many sampled answers
-are necessary for the original become the permutations.
+are necessary for the original list to become identical to the permutations.
 "
 compute_min_max_distance <- function(permutation,current_top){
   "the trick here is what is the minimum number of yes answers
