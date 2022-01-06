@@ -21,6 +21,14 @@ implementing these rules correspond to stop_confident_reshuffle and
 stop_confident_replacement
 "
 
+#-----------------------------------------------
+
+install.packages("stringdist")
+install.packages("StatRank")
+library(StatRank)
+library(stringdist)
+
+
 "Generates permutations of the elements of x
 source: https://stackoverflow.com/questions/11095992/generating-all-distinct-permutations-of-a-list-in-r
 "
@@ -50,6 +58,30 @@ hamming_distance <- function(source, target){
 }
 
 
+"
+Compute the transposition distance, which correspond to 
+number of changes to make one list identical to another.
+Take for instance, source =(4,9,5), target=(4,5,9)
+the transposition distance is 1.
+"
+tranposition_distance <- function(source, target){
+  return(stringdist(intToUtf8(source),  intToUtf8(target)))
+}
+
+"
+Make differences at the top more severe than differences at the bottom.
+"
+ndcg_distance <- function(source, target){
+  #Need to make source 1,2,3 and replace the values in target for these numbers.
+  return(Evaluation.NDCG(source,target))
+}
+
+
+"
+Note that the tranposition distance subestimates permutations that are more far apart.
+Take for instance, source =(4,9,5), target=(9,5,4), tranposition_distance==2,
+whereas hamming_distance ==3.
+"
 
 "
 Compute distance in terms of samples from each permutation and 
